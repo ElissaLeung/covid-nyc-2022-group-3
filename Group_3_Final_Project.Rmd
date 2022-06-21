@@ -1,0 +1,265 @@
+---
+title: "Covid-19 Project"
+output: html_document
+---
+
+```{r}
+library(tidycensus)
+library(tidyverse)
+library(lubridate)
+library(modelr)
+library(tigris)
+library(sf)
+
+census_api_key('0ad1f86f5e19513b601e50ee548efe0be7910b85', install = TRUE)
+
+readRenviron("~/.Renviron")
+
+options(tigris_use_cache = TRUE)
+
+```
+
+
+
+```{r}
+
+nyc_zip_codes <- read_csv("nyc-zip-codes.csv") %>%
+  rename(GEOID = ZipCode)
+
+```
+
+
+
+Figure 1
+
+```{r}
+
+var <- load_variables(2016, 'acs5', cache = TRUE)
+View(var)
+
+
+```
+
+
+Zipcode uninsured
+
+```{r}
+
+uninsured_zipcode <- get_acs(geography = "zcta",
+                        variables = c(uninsured_34 = "B27010_033", uninsured_64 = "B27010_050", total_34 = "B27010_018", total_64 = "B27010_034"),
+                        year = 2016,
+                        geometry = TRUE)
+
+nyc_uninsured2 <- merge(nyc_zip_codes, uninsured_zipcode, by = "GEOID") %>%
+  select(GEOID:estimate) %>%
+  pivot_wider(names_from = variable, values_from = estimate) %>%
+  mutate(proportion = (uninsured_34 + uninsured_64) / (total_34 + total_64))
+
+nyc_uninsured2 %>%
+  summary()
+
+```
+
+
+
+Proportion of 18-64 year olds who are uninsured
+
+
+```{r}
+
+nyc_uninsured <- get_acs(geography = "tract",
+                        variables = c(uninsured_34 = "B27010_033", uninsured_64 = "B27010_050", total_34 = "B27010_018", total_64 = "B27010_034"),
+                        state = "NY",
+                        county = c("New York", "Kings", "Queens", "Bronx", "Richmond"),
+                        year = 2016,
+                        geometry = TRUE) %>%
+  select(GEOID:estimate) %>%
+  pivot_wider(names_from = variable, values_from = estimate) %>%
+  mutate(proportion = (uninsured_34 + uninsured_64) / (total_34 + total_64))
+
+```
+
+
+```{r}
+
+nyc_uninsured %>%
+  summary()
+
+
+```
+
+```{r}
+
+nyc_uninsured %>%
+  ggplot(aes(fill = proportion)) +
+  geom_sf()
+
+```
+
+
+Median income (in millions, 2016$)
+
+```{r}
+
+nyc_medincome <- get_acs(geography = "tract",
+                         variables = c(medincome = "B19013_001"),
+                         state = "NY",
+                         county = c("New York", "Kings", "Queens", "Bronx", "Richmond"),
+                         year = 2016,
+                         geometry = TRUE)
+
+```
+
+```{r}
+
+nyc_medincome %>%
+  summary()
+
+
+```
+
+```{r}
+
+nyc_medincome %>%
+  ggplot(aes(fill = estimate)) +
+  geom_sf() +
+  scale_fill_distiller(palette = "Greens",
+                       direction = 1)
+
+```
+
+  Zipcode Median Income
+
+```{r}
+
+nyc_medinc2 <- get_acs(geography = "zcta",
+                         variables = c(medincome = "B19013_001"),
+                         year = 2016,
+                         geometry = TRUE)
+
+nyc_med_income2 <- merge(nyc_zip_codes, nyc_medinc2, by = "GEOID")
+
+nyc_med_income2 %>%
+  summary()
+```
+
+
+
+
+
+Proportion self-identifying as White
+
+```{r}
+
+prop_white <- get_acs(geography = "tract",
+                         variables = c(white_alone = "B02001_002", total = "B02001_001"),
+                         state = "NY",
+                         county = c("New York", "Kings", "Queens", "Bronx", "Richmond"),
+                         year = 2016) %>%
+  select(GEOID:estimate) %>%
+  pivot_wider(names_from = variable, values_from = estimate) %>%
+  mutate(proportion = white_alone/total)
+
+```
+
+
+```{r}
+
+prop_white %>% 
+  summary()
+
+```
+
+  Zipcode Proportion White
+  
+```{r}
+
+zipcode_prop_white <- get_acs(geography = "zcta",
+                        variables = c(white_alone = "B02001_002", total = "B02001_001"),
+                        year = 2016,
+                        geometry = TRUE)
+
+nyc_prop_white <- merge(nyc_zip_codes, zipcode_prop_white, by = "GEOID") %>%
+  select(GEOID:estimate) %>%
+  pivot_wider(names_from = variable, values_from = estimate) %>%
+  mutate(proportion = white_alone/total)
+
+nyc_prop_white %>%
+  summary()
+
+```
+
+
+
+
+
+Proportion of households of 4 or more
+
+
+```{r}
+
+prop_4 <- get_acs(geography = "tract",
+                         variables = c(four = "B11016_005", five = "B11016_006", six = "B11016_007", seven_more = "B11016_008", nf_four = "B11016_013", nf_five = "B11016_014", nf_six = "B11016_015", nf_seven = "B11016_016", total = "B11016_001"),
+                         state = "NY",
+                         county = c("New York", "Kings", "Queens", "Bronx", "Richmond"),
+                         year = 2016) %>%
+  select(GEOID:estimate) %>%
+  pivot_wider(names_from = variable, values_from = estimate) %>%
+  mutate(proportion = (four + five + six + seven_more + nf_four + nf_five + nf_six + nf_seven)/total) 
+
+
+```
+
+```{r}
+prop_4 %>% 
+  summary()
+
+```
+
+
+Proportion of population that commutes by bus
+
+
+```{r}
+
+prop_bus <- get_acs(geography = "tract",
+                         variables = c(bus = 'B08301_011', total = "B08301_001"),
+                         state = "NY",
+                         county = c("New York", "Kings", "Queens", "Bronx", "Richmond"),
+                         year = 2016) %>%
+  select(GEOID:estimate) %>%
+  pivot_wider(names_from = variable, values_from = estimate) %>%
+  mutate(proportion = bus/total)
+
+```
+
+```{r}
+prop_bus %>%
+  summary()
+```
+
+Proportion of population 65+ years of age
+
+```{r}
+
+prop_65yrs <- get_acs(geography = "tract",
+                         variables = c(m65 = "B01001_020", m67 = "B01001_021", m70 = "B01001_022", m75 = "B01001_023", m80 = "B01001_024", m85 = "B01001_025", f_65 = "B01001_044", f_67 = "B01001_045", f_70 = "B01001_046", f_75 = "B01001_047", f_80 = "B01001_048", f_85 = "B01001_049", total = "B01001_001"),
+                         state = "NY",
+                         county = c("New York", "Kings", "Queens", "Bronx", "Richmond"),
+                         year = 2016) %>%
+  select(GEOID:estimate) %>%
+  pivot_wider(names_from = variable, values_from = estimate) %>%
+  mutate(proportion = (m65 + m67 + m70 + m75 + m80 + m85 + f_65 + f_67 + f_70 + f_75 + f_80 + f_85)/total)
+  
+
+```
+
+```{r}
+
+prop_65yrs %>%
+  summary()
+
+```
+
+
+
