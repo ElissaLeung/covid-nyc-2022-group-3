@@ -13,7 +13,7 @@ In their article, Matthew R. Lamb, Sasikiran Kandula and Jeffrey Shaman, discuss
 **Our Project**
 
 In this project, our goal was to replicate their findings and achieve the figures and tables from the article.
-+ File containing all the replications [here](../main/Group_3_Final_Project.html).
++ File containing all the replications [here](http://htmlpreview.github.io/?https://github.com/msr-ds3/covid-nyc-2022-group-3/blob/main/Group_3_Final_Project.html).
 + File containing the code that produced those replications [here](../main/Group_3_Final_Project.Rmd).
   + To use the ACS data provided by tidycensus, users may need to include their own API key using the commented line 19.
 
