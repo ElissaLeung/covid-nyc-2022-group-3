@@ -1,0 +1,844 @@
+---
+title: "Covid_NYC_Counties"
+output: html_document
+---
+
+```{r}
+library(tidycensus)
+library(tidyverse)
+library(lubridate)
+library(modelr)
+library(tigris)
+library(sf)
+library(dplyr)
+
+readRenviron("~/.Renviron")
+
+options(tigris_use_cache = TRUE)
+
+```
+
+
+```{r}
+
+nyc_zip_codes <- read_csv("https://raw.githubusercontent.com/erikgregorywebb/nyc-housing/master/Data/nyc-zip-codes.csv") %>%
+  rename(GEOID = ZipCode)
+
+manhattan <- nyc_zip_codes %>%
+  filter(Borough == "Manhattan")
+
+queens <- nyc_zip_codes %>%
+  filter(Borough == "Queens")
+
+```
+
+
+
+# Figure 1
+
+## Manhattan
+
+**Proportion of 18-64 year olds who are uninsured**
+
+```{r}
+
+manhattan_uninsured <- get_acs(geography = "zcta",
+                        variables = c(uninsured_34 = "B27010_033", uninsured_64 = "B27010_050", total_34 = "B27010_018", total_64 = "B27010_034"),
+                        state = "NY",
+                        year = 2016,
+                        geometry = TRUE) %>%
+  select(GEOID:estimate) %>%
+  filter(GEOID %in% manhattan$GEOID) %>%
+  pivot_wider(names_from = variable, values_from = estimate) %>%
+  group_by(GEOID) %>%
+  mutate(uninsured = (uninsured_34 + uninsured_64) / (total_34 + total_64))
+
+```
+
+
+
+```{r}
+
+manhattan_uninsured %>%
+  summary()
+
+
+```
+
+
+```{r}
+
+ggplot(st_as_sf(manhattan_uninsured), aes(fill = uninsured)) +
+  geom_sf()
+
+```
+
+
+
+**Median income (in millions, 2016$)**
+
+```{r}
+
+manhattan_med_income <- get_acs(geography = "zcta",
+                         variables = c(medincome = "B19013_001"),
+                         state = "NY",
+                         year = 2016,
+                         geometry = TRUE) %>%
+  select(GEOID:estimate) %>%
+  filter(GEOID %in% manhattan$GEOID) %>%
+  mutate(med_income = estimate/1000000)
+
+```
+
+
+```{r}
+
+manhattan_med_income %>%
+  summary()
+
+
+```
+
+
+```{r}
+
+ggplot(st_as_sf(manhattan_med_income), aes(fill = med_income)) +
+  geom_sf() +
+  scale_fill_distiller(palette = "Greens",
+                       direction = 1)
+
+```
+
+
+
+**Proportion self-identifying as White**
+
+```{r}
+
+manhattan_prop_white <- get_acs(geography = "zcta",
+                         variables = c(white_alone = "B02001_002", total = "B02001_001"),
+                         state = "NY",
+                         year = 2016,
+                         geometry = TRUE) %>%
+  select(GEOID:estimate) %>%
+  filter(GEOID %in% manhattan$GEOID) %>%
+  pivot_wider(names_from = variable, values_from = estimate) %>%
+  mutate(white = white_alone/total)
+
+```
+
+
+```{r}
+
+manhattan_prop_white %>% 
+  summary()
+
+```
+
+
+```{r}
+
+ggplot(st_as_sf(manhattan_prop_white), aes(fill = white)) +
+  geom_sf() +
+  scale_fill_distiller(palette = "Purples",
+                       direction = 1)
+
+```
+
+
+
+**Proportion of households of 4 or more**
+
+
+```{r}
+
+manhattan_prop_4 <- get_acs(geography = "zcta",
+                         variables = c(four = "B11016_005", five = "B11016_006", six = "B11016_007", seven_more = "B11016_008", nf_four = "B11016_013", nf_five = "B11016_014", nf_six = "B11016_015", nf_seven = "B11016_016", total = "B11016_001"),
+                         state = "NY",
+                         year = 2016,
+                         geometry = TRUE) %>%
+  select(GEOID:estimate) %>%
+  filter(GEOID %in% manhattan$GEOID) %>%
+  pivot_wider(names_from = variable, values_from = estimate) %>%
+  mutate(large_house = (four + five + six + seven_more + nf_four + nf_five + nf_six + nf_seven)/total) 
+
+
+```
+
+
+```{r}
+manhattan_prop_4 %>% 
+  summary()
+
+```
+
+```{r}
+
+ggplot(st_as_sf(manhattan_prop_4), aes(fill = large_house)) +
+  geom_sf() +
+  scale_fill_distiller(palette = "YlOrRd",
+                       direction = 1)
+
+```
+
+
+
+**Proportion of population that commutes by bus**
+
+
+```{r}
+
+manhattan_prop_bus <- get_acs(geography = "zcta",
+                         variables = c(bus = 'B08301_011', total = "B08301_001"),
+                         state = "NY",
+                         year = 2016,
+                         geometry = TRUE) %>%
+  select(GEOID:estimate) %>%
+  filter(GEOID %in% manhattan$GEOID) %>%
+  pivot_wider(names_from = variable, values_from = estimate) %>%
+  mutate(prop_bus = bus/total)
+
+```
+
+
+```{r}
+manhattan_prop_bus %>%
+  summary()
+```
+
+```{r}
+ggplot(st_as_sf(manhattan_prop_bus), aes(fill = prop_bus)) +
+  geom_sf() +
+  scale_fill_distiller(palette = "YlOrRd",
+                       direction = 1)
+```
+
+
+**Proportion of population 65+ years of age**
+
+```{r}
+
+manhattan_prop_65yrs <- get_acs(geography = "zcta",
+                         variables = c(m65 = "B01001_020", m67 = "B01001_021", m70 = "B01001_022", m75 = "B01001_023", m80 = "B01001_024", m85 = "B01001_025", f_65 = "B01001_044", f_67 = "B01001_045", f_70 = "B01001_046", f_75 = "B01001_047", f_80 = "B01001_048", f_85 = "B01001_049", total = "B01001_001"),
+                         state = "NY",
+                         year = 2016,
+                         geometry = TRUE) %>%
+  select(GEOID:estimate) %>%
+  filter(GEOID %in% manhattan$GEOID) %>%
+  pivot_wider(names_from = variable, values_from = estimate) %>%
+  mutate(elderly = (m65 + m67 + m70 + m75 + m80 + m85 + f_65 + f_67 + f_70 + f_75 + f_80 + f_85)/total)
+  
+
+```
+
+
+```{r}
+
+manhattan_prop_65yrs %>%
+  summary()
+
+```
+
+
+```{r}
+
+ggplot(st_as_sf(manhattan_prop_65yrs), aes(fill = elderly)) +
+  geom_sf() +
+  scale_fill_distiller(palette = "YlOrRd",
+                       direction = 1)
+
+```
+
+**APRIL 1**
+
+```{r}
+
+april_1 <- read_csv("https://raw.githubusercontent.com/nychealth/coronavirus-data/097cbd70aa00eb635b17b177bc4546b2fce21895/tests-by-zcta.csv") %>%
+  mutate(pos_prop = Positive/Total) %>%
+  rename(GEOID = MODZCTA) %>%
+  select(GEOID, Positive:pos_prop)
+
+```
+
+
+```{r}
+
+df_list_manhattan <- list(manhattan_uninsured, manhattan_med_income, manhattan_prop_white, manhattan_prop_4, manhattan_prop_bus, manhattan_prop_65yrs)
+
+all_df_manhattan <- df_list_manhattan %>%
+  reduce(full_join, by = "GEOID") %>%
+  select(GEOID, uninsured, med_income, white, large_house, prop_bus, elderly)
+
+lm_all_manhattan <- merge(all_df_manhattan, april_1, by = "GEOID") %>%
+  select(GEOID, uninsured:pos_prop)
+
+```
+
+
+*Univariate Linear Models*
+
+**Proportion of 4-Person Household**
+
+```{r}
+
+lmfit_manhattan_4 <- lm(pos_prop ~ large_house, data = lm_all_manhattan)
+
+summary(lmfit_manhattan_4)
+
+
+```
+
+
+**Proportion of People 18-64 Years Old that are Uninsured**
+
+
+```{r}
+
+lmfit_manhattan_uninsured <- lm(pos_prop ~ uninsured, data = lm_all_manhattan)
+
+summary(lmfit_manhattan_uninsured)
+
+```
+
+
+**Proportion Self-Identifying as White**
+
+```{r}
+
+lmfit_manhattan_white <- lm(pos_prop ~ white, data = lm_all_manhattan)
+
+summary(lmfit_manhattan_white)
+
+```
+
+
+**Median Income**
+
+```{r}
+
+lmfit_manhattan_med_income <- lm(pos_prop ~ med_income, data = lm_all_manhattan)
+
+summary(lmfit_manhattan_med_income)
+
+
+```
+
+
+**Proportion of People Who Commute by Bus**
+
+```{r}
+
+lmfit_manhattan_bus <- lm(pos_prop ~ prop_bus, data = lm_all_manhattan)
+
+summary(lmfit_manhattan_bus)
+
+```
+
+
+**Proportion Elderly (65+ years)**
+
+```{r}
+
+lmfit_manhattan_elderly <- lm(pos_prop ~ elderly, data = lm_all_manhattan)
+
+summary(lmfit_manhattan_elderly)
+
+```
+
+
+*Multivariate Linear Models (Table 1)*
+
+**3 variables: uninsured, white, median income**
+
+```{r}
+
+lmfit_best_manhattan <- lm(pos_prop ~ uninsured + white + med_income, data = lm_all_manhattan)
+
+summary(lmfit_best_manhattan)
+
+
+```
+
+
+
+
+## Queens
+
+**Proportion of 18-64 year olds who are uninsured**
+
+
+```{r}
+
+queens_uninsured <- get_acs(geography = "zcta",
+                        variables = c(uninsured_34 = "B27010_033", uninsured_64 = "B27010_050", total_34 = "B27010_018", total_64 = "B27010_034"),
+                        state = "NY",
+                        year = 2016,
+                        geometry = TRUE) %>%
+  select(GEOID:estimate) %>%
+  filter(GEOID %in% queens$GEOID) %>%
+  pivot_wider(names_from = variable, values_from = estimate) %>%
+  group_by(GEOID) %>%
+  mutate(uninsured = (uninsured_34 + uninsured_64) / (total_34 + total_64))
+
+```
+
+
+
+```{r}
+
+queens_uninsured %>%
+  summary()
+
+
+```
+
+
+
+```{r}
+
+ggplot(st_as_sf(queens_uninsured), aes(fill = uninsured)) +
+  geom_sf()
+
+```
+
+
+
+**Median income (in millions, 2016$)**
+
+```{r}
+
+queens_med_income <- get_acs(geography = "zcta",
+                         variables = c(medincome = "B19013_001"),
+                         state = "NY",
+                         year = 2016,
+                         geometry = TRUE) %>%
+  select(GEOID:estimate) %>%
+  filter(GEOID %in% queens$GEOID) %>%
+  mutate(med_income = estimate/1000000)
+
+```
+
+
+
+```{r}
+
+queens_med_income %>%
+  summary()
+
+
+```
+
+
+
+```{r}
+
+ggplot(st_as_sf(queens_med_income), aes(fill = med_income)) +
+  geom_sf() +
+  scale_fill_distiller(palette = "Greens",
+                       direction = 1)
+
+```
+
+
+
+**Proportion self-identifying as White**
+
+```{r}
+
+queens_prop_white <- get_acs(geography = "zcta",
+                         variables = c(white_alone = "B02001_002", total = "B02001_001"),
+                         state = "NY",
+                         year = 2016,
+                         geometry = TRUE) %>%
+  select(GEOID:estimate) %>%
+  filter(GEOID %in% queens$GEOID) %>%
+  pivot_wider(names_from = variable, values_from = estimate) %>%
+  mutate(white = white_alone/total)
+
+```
+
+
+```{r}
+
+queens_prop_white %>% 
+  summary()
+
+```
+
+
+```{r}
+
+ggplot(st_as_sf(queens_prop_white), aes(fill = white)) +
+  geom_sf() +
+  scale_fill_distiller(palette = "Purples",
+                       direction = 1)
+
+```
+
+
+
+**Proportion of households of 4 or more**
+
+
+```{r}
+
+queens_prop_4 <- get_acs(geography = "zcta",
+                         variables = c(four = "B11016_005", five = "B11016_006", six = "B11016_007", seven_more = "B11016_008", nf_four = "B11016_013", nf_five = "B11016_014", nf_six = "B11016_015", nf_seven = "B11016_016", total = "B11016_001"),
+                         state = "NY",
+                         year = 2016,
+                         geometry = TRUE) %>%
+  select(GEOID:estimate) %>%
+  filter(GEOID %in% queens$GEOID) %>%
+  pivot_wider(names_from = variable, values_from = estimate) %>%
+  mutate(large_house = (four + five + six + seven_more + nf_four + nf_five + nf_six + nf_seven)/total) 
+
+
+```
+
+
+```{r}
+queens_prop_4 %>% 
+  summary()
+
+```
+
+
+```{r}
+
+ggplot(st_as_sf(queens_prop_4), aes(fill = large_house)) +
+  geom_sf() +
+  scale_fill_distiller(palette = "YlOrRd",
+                       direction = 1)
+
+```
+
+
+
+**Proportion of population that commutes by bus**
+
+
+```{r}
+
+queens_prop_bus <- get_acs(geography = "zcta",
+                         variables = c(bus = 'B08301_011', total = "B08301_001"),
+                         state = "NY",
+                         year = 2016,
+                         geometry = TRUE) %>%
+  select(GEOID:estimate) %>%
+  filter(GEOID %in% queens$GEOID) %>%
+  pivot_wider(names_from = variable, values_from = estimate) %>%
+  mutate(prop_bus = bus/total)
+
+```
+
+
+```{r}
+queens_prop_bus %>%
+  summary()
+```
+
+
+```{r}
+ggplot(st_as_sf(queens_prop_bus), aes(fill = prop_bus)) +
+  geom_sf() +
+  scale_fill_distiller(palette = "YlOrRd",
+                       direction = 1)
+```
+
+
+**Proportion of population 65+ years of age**
+
+```{r}
+
+queens_prop_65yrs <- get_acs(geography = "zcta",
+                         variables = c(m65 = "B01001_020", m67 = "B01001_021", m70 = "B01001_022", m75 = "B01001_023", m80 = "B01001_024", m85 = "B01001_025", f_65 = "B01001_044", f_67 = "B01001_045", f_70 = "B01001_046", f_75 = "B01001_047", f_80 = "B01001_048", f_85 = "B01001_049", total = "B01001_001"),
+                         state = "NY",
+                         year = 2016,
+                         geometry = TRUE) %>%
+  select(GEOID:estimate) %>%
+  filter(GEOID %in% queens$GEOID) %>%
+  pivot_wider(names_from = variable, values_from = estimate) %>%
+  mutate(elderly = (m65 + m67 + m70 + m75 + m80 + m85 + f_65 + f_67 + f_70 + f_75 + f_80 + f_85)/total)
+  
+
+```
+
+
+```{r}
+
+queens_prop_65yrs %>%
+  summary()
+
+```
+
+
+```{r}
+
+queens_prop_65yrs_filtered <- queens_prop_65yrs %>%
+  filter(elderly < 0.8)
+
+ggplot(st_as_sf(queens_prop_65yrs_filtered), aes(fill = elderly)) +
+  geom_sf() +
+  scale_fill_distiller(palette = "YlOrRd",
+                       direction = 1)
+
+```
+
+
+*Merge Dataframes Queens*
+
+```{r}
+
+df_list_queens <- list(queens_uninsured, queens_med_income, queens_prop_white, queens_prop_4, queens_prop_bus, queens_prop_65yrs)
+
+all_df_queens <- df_list_queens %>%
+  reduce(full_join, by = "GEOID") %>%
+  select(GEOID, uninsured, med_income, white, large_house, prop_bus, elderly)
+
+lm_all_queens <- merge(all_df_queens, april_1, by = "GEOID") %>%
+  select(GEOID, uninsured:pos_prop)
+
+```
+
+
+*Univariate Linear Models*
+
+**Proportion of 4-Person Household**
+
+```{r}
+
+lmfit_queens_4 <- lm(pos_prop ~ large_house, data = lm_all_queens)
+
+summary(lmfit_queens_4)
+
+
+```
+
+
+**Proportion of People 18-64 Years Old that are Uninsured**
+
+
+```{r}
+
+lmfit_queens_uninsured <- lm(pos_prop ~ uninsured, data = lm_all_queens)
+
+summary(lmfit_queens_uninsured)
+
+```
+
+
+**Proportion Self-Identifying as White**
+
+```{r}
+
+lmfit_queens_white <- lm(pos_prop ~ white, data = lm_all_queens)
+
+summary(lmfit_queens_white)
+
+```
+
+
+**Median Income**
+
+```{r}
+
+lmfit_queens_med_income <- lm(pos_prop ~ med_income, data = lm_all_queens)
+
+summary(lmfit_queens_med_income)
+
+
+```
+
+
+**Proportion of People Who Commute by Bus**
+
+```{r}
+
+lmfit_queens_bus <- lm(pos_prop ~ prop_bus, data = lm_all_queens)
+
+summary(lmfit_queens_bus)
+
+```
+
+
+**Proportion Elderly (65+ years)**
+
+```{r}
+
+lmfit_queens_elderly <- lm(pos_prop ~ elderly, data = lm_all_queens)
+
+summary(lmfit_queens_elderly)
+
+```
+
+
+*Multivariate Linear Models (Table 1)*
+
+**3 variables: median income, 4- or more person household, bus**
+
+```{r}
+
+lmfit_best_queens <- lm(pos_prop ~ med_income + large_house + prop_bus, data = lm_all_queens)
+
+summary(lmfit_best_queens)
+
+
+```
+
+
+
+
+# Mobility Data
+
+
+*Safegraph Data*
+```{r}
+
+load('/data/safegraph/safegraph.Rdata')
+
+safegraph <- safegraph %>%
+  rename(GEOID = postal_code) %>%
+  merge(nyc_zip_codes, by = "GEOID")
+
+```
+
+
+  *February*
+
+```{r}
+
+february <- safegraph %>%
+  filter(month(date)==2) %>%
+  arrange(GEOID, date)
+
+```
+
+
+```{r}
+
+med_feb <- february %>%
+  group_by(GEOID) %>%
+  summarize(median = median(avg_visits_per_day))
+
+```
+
+
+  *March & April*
+
+```{r}
+
+mar_apr <- safegraph %>%
+  filter(month(date)==3 | month(date)==4) %>%
+  arrange(GEOID, date)
+  
+
+```
+
+
+  *Change in Mobility Calculations*
+
+```{r}
+
+mobility <- merge(mar_apr, med_feb, by = "GEOID") %>%
+  mutate(change = (avg_visits_per_day-median)/median)
+
+```
+
+
+## Linear Models with Mobility
+
+**Manhattan**
+
+
+```{r}
+all_variables_manhattan <- merge(lm_all_manhattan, mobility, by = "GEOID") %>%
+  filter(is.finite(change), date == "2020-04-01")
+
+
+```
+
+
+```{r}
+
+lm_mobility_manhattan <- lm(pos_prop ~ change, data = all_variables_manhattan)
+
+summary(lm_mobility_manhattan)
+
+```
+
+```{r}
+
+lm_all_manhattan <- lm(pos_prop ~ uninsured + large_house + white + elderly + prop_bus + med_income, data = all_variables_manhattan)
+
+summary(lm_all_manhattan)
+
+```
+
+
+
+```{r}
+
+lm_all_mobility_manhattan <- lm(pos_prop ~ uninsured + large_house + white + elderly + prop_bus + med_income + change, data = all_variables_manhattan)
+
+summary(lm_all_mobility_manhattan)
+
+```
+
+```{r}
+
+lm_best_mobility_manhattan <- lm(pos_prop ~ uninsured + white + med_income + change, data = all_variables_manhattan)
+
+summary(lm_best_mobility_manhattan)
+
+```
+
+**Queens**
+
+```{r}
+all_variables_queens <- merge(lm_all_queens, mobility, by = "GEOID") %>%
+  filter(is.finite(change), date == "2020-04-01")
+
+
+```
+
+
+```{r}
+
+lm_mobility_queens <- lm(pos_prop ~ change, data = all_variables_queens)
+
+summary(lm_mobility_queens)
+
+```
+
+
+```{r}
+
+lm_all_queens <- lm(pos_prop ~ uninsured + large_house + white + elderly + prop_bus + med_income, data = all_variables_queens)
+
+summary(lm_all_queens)
+
+```
+
+
+
+```{r}
+
+lm_all_mobility_queens <- lm(pos_prop ~ uninsured + large_house + white + elderly + prop_bus + med_income + change, data = all_variables_queens)
+
+summary(lm_all_mobility_queens)
+
+```
+
+
+
+```{r}
+
+lm_best_mobility_queens <- lm(pos_prop ~ med_income + large_house + prop_bus + change, data = all_variables_queens)
+
+summary(lm_best_mobility_queens)
+
+```
+
+
+
+

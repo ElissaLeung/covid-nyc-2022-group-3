@@ -1,8 +1,10 @@
 ---
 title: "Covid-19 Project"
-authors: "Elissa Leung & Christopher Esquivel"
-date: "2022-06-24"
-output: html_document
+date: '2022-06-24'
+output:
+  html_document: default
+  pdf_document: default
+authors: Elissa Leung & Christopher Esquivel
 ---
 
 PACKAGES
@@ -35,65 +37,50 @@ nyc_zip_codes <- read_csv("https://raw.githubusercontent.com/erikgregorywebb/nyc
 ```
 
 
-Getting and Filtering ACS Data
+# Getting and Filtering ACS Data
 
-  Proportion of 18-64 year olds that are uninsured
+**Proportion of 18-64 year olds that are uninsured**
 
 ```{r}
 
-uninsured_zipcode <- get_acs(geography = "zcta",
+nyc_uninsured <- get_acs(geography = "zcta",
                         variables = c(uninsured_34 = "B27010_033", uninsured_64 = "B27010_050", total_34 = "B27010_018", total_64 = "B27010_034"),
                         year = 2016,
-                        geometry = TRUE)
-
-```
-
-
-```{r}
-
-nyc_uninsured <- uninsured_zipcode %>%
+                        geometry = TRUE) %>%
   select(GEOID:estimate) %>%
   filter(GEOID %in% nyc_zip_codes$GEOID) %>%
   pivot_wider(names_from = variable, values_from = estimate) %>%
   mutate(proportion_uninsured = (uninsured_34 + uninsured_64) / (total_34 + total_64))
 
-
 ```
 
-  Median Income (in 2016 $)
+
+
+**Median Income (in 2016 $)**
 
 ```{r}
 
-nyc_medinc <- get_acs(geography = "zcta",
+nyc_med_income <- get_acs(geography = "zcta",
                          variables = c(medincome = "B19013_001"),
                          year = 2016,
-                         geometry = TRUE)
-
-```
-
-```{r}
-
-nyc_med_income <- nyc_medinc %>%
+                         geometry = TRUE) %>%
   select(GEOID:estimate) %>%
   filter(GEOID %in% nyc_zip_codes$GEOID) %>%
   mutate(median_income = estimate/1000000)
 
+
 ```
 
-  Proportion of those self-identifying as White
+
+
+**Proportion of those self-identifying as White**
 
 ```{r}
 
-zipcode_prop_white <- get_acs(geography = "zcta",
+nyc_prop_white <- get_acs(geography = "zcta",
                         variables = c(white_alone = "B02001_002", total = "B02001_001"),
                         year = 2016,
-                        geometry = TRUE)
-
-```
-
-```{r}
-
-nyc_prop_white <- zipcode_prop_white %>%
+                        geometry = TRUE) %>%
   select(GEOID:estimate) %>%
   filter(GEOID %in% nyc_zip_codes$GEOID) %>%
   pivot_wider(names_from = variable, values_from = estimate) %>%
@@ -101,21 +88,16 @@ nyc_prop_white <- zipcode_prop_white %>%
 
 ```
 
-  Proportion of 4- or more person households
+
+
+**Proportion of 4- or more person households**
 
 ```{r}
 
-zipcode_prop4 <- get_acs(geography = "zcta",
+nyc_prop4 <- get_acs(geography = "zcta",
                         variables = c(four = "B11016_005", five = "B11016_006", six = "B11016_007", seven_more = "B11016_008", nf_four = "B11016_013", nf_five = "B11016_014", nf_six = "B11016_015", nf_seven = "B11016_016", total = "B11016_001"),
                         year = 2016,
-                        geometry = TRUE)
-
-```
-
-
-```{r}
-
-nyc_prop4 <- zipcode_prop4 %>%
+                        geometry = TRUE) %>%
   select(GEOID:estimate) %>%
   filter(GEOID %in% nyc_zip_codes$GEOID) %>%
   pivot_wider(names_from = variable, values_from = estimate) %>%
@@ -123,56 +105,41 @@ nyc_prop4 <- zipcode_prop4 %>%
 
 ```
 
-  Proportion of those who ride buses
+
+
+**Proportion of those who ride buses**
 
 ```{r}
-zipcode_prop_bus <- get_acs(geography = "zcta",
+nyc_prop_bus <- get_acs(geography = "zcta",
                         variables = c(bus = 'B08301_011', total = "B08301_001"),
                         year = 2016,
-                        geometry = TRUE)
-
-```
-
-
-```{r}
-
-nyc_prop_bus <- zipcode_prop_bus %>%
+                        geometry = TRUE) %>%
   select(GEOID:estimate) %>%
   filter(GEOID %in% nyc_zip_codes$GEOID) %>%
   pivot_wider(names_from = variable, values_from = estimate) %>%
   mutate(proportion_bus = bus/total)
 
-
 ```
 
 
-  Proportion of Elderly (65+ years old)
+**Proportion of Elderly (65+ years old)**
 
 ```{r}
-zipcode_prop_65yrs <- get_acs(geography = "zcta",
+nyc_prop_65yrs <- get_acs(geography = "zcta",
                          variables = c(m65 = "B01001_020", m67 = "B01001_021", m70 = "B01001_022", m75 = "B01001_023", m80 = "B01001_024", m85 = "B01001_025", f_65 = "B01001_044", f_67 = "B01001_045", f_70 = "B01001_046", f_75 = "B01001_047", f_80 = "B01001_048", f_85 = "B01001_049", total = "B01001_001"),
                          year = 2016,
-                         geometry = TRUE)
-
-
-```
-
-```{r}
-
-nyc_prop_65yrs <- zipcode_prop_65yrs %>%
+                         geometry = TRUE) %>%
   select(GEOID:estimate) %>%
   filter(GEOID %in% nyc_zip_codes$GEOID) %>%
   pivot_wider(names_from = variable, values_from = estimate) %>%
   mutate(proportion_65 = (m65 + m67 + m70 + m75 + m80 + m85 + f_65 + f_67 + f_70 + f_75 + f_80 + f_85)/total)
 
-
 ```
 
 
+# FIGURE 1
 
-**FIGURE 1**
-
-  Proportion of 18-64 year olds that are uninsured
+**Proportion of 18-64 year olds that are uninsured**
 
 
 ```{r}
@@ -193,7 +160,7 @@ ggplot(st_as_sf(nyc_uninsured), aes(fill = proportion_uninsured)) +
 
 
 
-  Median Income
+**Median Income**
 
 ```{r}
 
@@ -211,7 +178,7 @@ ggplot(st_as_sf(nyc_med_income), aes(fill = median_income)) +
 
 
 
-  Proportion of those self-identifying as white
+**Proportion of those self-identifying as white**
 
 ```{r}
 
@@ -231,7 +198,7 @@ ggplot(st_as_sf(nyc_prop_white), aes(fill = proportion_white)) +
 ```
 
 
-  Proportion of 4 or more person households
+**Proportion of 4 or more person households**
 
 ```{r}
 
@@ -248,7 +215,7 @@ ggplot(st_as_sf(nyc_prop4), aes(fill = proportion_4)) +
 ```
 
 
-  Proportion of Bus Riders
+**Proportion of Bus Riders**
 
 ```{r}
 
@@ -269,7 +236,7 @@ ggplot(st_as_sf(nyc_prop_bus), aes(fill = proportion_bus)) +
 
 
 
-  Proportion of Elderly
+**Proportion of Elderly**
   
 ```{r}
 
@@ -281,7 +248,11 @@ nyc_prop_65yrs %>%
 
 ```{r}
 
-ggplot(st_as_sf(nyc_prop_65yrs), aes(fill = proportion_65)) +
+nyc_prop_65yrs_filtered <- nyc_prop_65yrs %>%
+  filter(proportion_65 < 0.8)
+
+
+ggplot(st_as_sf(nyc_prop_65yrs_filtered), aes(fill = proportion_65)) +
   geom_sf() +
   scale_fill_distiller(palette = "YlOrRd", direction = 1)
   
@@ -290,7 +261,7 @@ ggplot(st_as_sf(nyc_prop_65yrs), aes(fill = proportion_65)) +
 
 
 
-**TABLE 1**
+# TABLE 1
 
 
 ```{r}
@@ -303,7 +274,7 @@ april_1 <- read_csv("https://raw.githubusercontent.com/nychealth/coronavirus-dat
 ```
 
 
-To Verify the # of April Tests and Positive Results
+*To Verify the # of April Tests and Positive Results*
 
 ```{r}
 may_1 <- read_csv("https://raw.githubusercontent.com/nychealth/coronavirus-data/9e26adc2c475d3378d7579e48e936f8a807b254b/tests-by-zcta.csv") %>%
@@ -322,10 +293,7 @@ april_covid %>%
 ```
 
 
-
-*Univariate Linear Models*
-
-  Proportion of 18-64 yrs old Uninsured
+*Merged Dataframes*
 
 ```{r}
 
@@ -341,7 +309,9 @@ lm_all <- merge(all_df, april_1, by = "GEOID") %>%
 ```
 
 
-  Proportion of 4-Person Household
+*Univariate Linear Models*
+
+**Proportion of 4-Person Household**
 
 ```{r}
 
@@ -353,7 +323,7 @@ summary(lmfit_4)
 ```
 
 
-  Proportion of People 18-64 Years Old that are Uninsured
+**Proportion of People 18-64 Years Old that are Uninsured**
 
 
 ```{r}
@@ -365,7 +335,7 @@ summary(lmfit_uninsured)
 ```
 
 
-  Proportion Self-Identifying as White
+**Proportion Self-Identifying as White**
 
 ```{r}
 
@@ -376,7 +346,7 @@ summary(lmfit_white)
 ```
 
 
-  Median Income
+**Median Income**
 
 ```{r}
 
@@ -388,7 +358,7 @@ summary(lmfit_med)
 ```
 
 
-  Proportion of People Who Commute by Bus
+**Proportion of People Who Commute by Bus**
 
 ```{r}
 
@@ -400,7 +370,7 @@ summary(lmfit_bus)
 ```
 
 
-  Proportion Elderly (65+ years)
+**Proportion Elderly (65+ years)**
 
 ```{r}
 
@@ -413,7 +383,7 @@ summary(lmfit_65yrs)
 
 *Multivariate Linear Models (Table 1)*
 
-  4 variables: 4 or more people, uninsured, white, median income
+**4 variables: 4 or more people, uninsured, white, median income**
 
 ```{r}
 
@@ -426,9 +396,9 @@ summary(lmfit_best)
 
 
 
-**FIGURE 2: MOBILITY DATA**
+# FIGURE 2: MOBILITY DATA
 
-  Safegraph Data
+*Safegraph Data*
 ```{r}
 
 load('/data/safegraph/safegraph.Rdata')
@@ -440,7 +410,7 @@ safegraph <- safegraph %>%
 ```
 
 
-  February
+  *February*
 
 ```{r}
 
@@ -460,7 +430,7 @@ med_feb <- february %>%
 ```
 
 
-  March & April
+  *March & April*
 
 ```{r}
 
@@ -472,7 +442,7 @@ mar_apr <- safegraph %>%
 ```
 
 
-  Change in Mobility Calculations
+  *Change in Mobility Calculations*
 
 ```{r}
 
@@ -493,7 +463,7 @@ mobility_filter <- mobility %>%
 ```
 
 
-  Violin Plot (filtered)
+  **Violin Plot (filtered)**
 
 ```{r}
 
@@ -509,7 +479,7 @@ ggplot() +
 ```
 
 
-**TABLE 2**
+# TABLE 2
 
 ```{r}
 
