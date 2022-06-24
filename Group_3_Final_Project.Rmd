@@ -35,7 +35,7 @@ nyc_zip_codes <- read_csv("https://raw.githubusercontent.com/erikgregorywebb/nyc
 ```
 
 
-Geting and Filtering ACS Data
+Getting and Filtering ACS Data
 
   Proportion of 18-64 year olds that are uninsured
 
@@ -312,14 +312,7 @@ may_1 <- read_csv("https://raw.githubusercontent.com/nychealth/coronavirus-data/
 twomonths_covid <- inner_join(april_1, may_1, by = "GEOID")
 
 april_covid <- twomonths_covid %>%
-  mutate(Positive = Positive.y - Positive.x, Total = Total.y - Total.x) %>%
-  select(GEOID, Positive:Total) %>%
-  mutate(Prop_Pos = Positive/Total)
-
-```
-
-
-```{r}
+  mutate(Positive = Positive.y - Positive.x, Total = Total.y - Total.x)
 
 april_covid %>%
   summarize(positive = sum(Positive),

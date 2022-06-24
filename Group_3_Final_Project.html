@@ -222,7 +222,7 @@ options(tigris_use_cache = TRUE)</code></pre>
 ## 
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<p>Geting and Filtering ACS Data</p>
+<p>Getting and Filtering ACS Data</p>
 <p>Proportion of 18-64 year olds that are uninsured</p>
 <pre class="r"><code>uninsured_zipcode &lt;- get_acs(geography = &quot;zcta&quot;,
                         variables = c(uninsured_34 = &quot;B27010_033&quot;, uninsured_64 = &quot;B27010_050&quot;, total_34 = &quot;B27010_018&quot;, total_64 = &quot;B27010_034&quot;),
@@ -493,10 +493,9 @@ options(tigris_use_cache = TRUE)</code></pre>
 <pre class="r"><code>twomonths_covid &lt;- inner_join(april_1, may_1, by = &quot;GEOID&quot;)
 
 april_covid &lt;- twomonths_covid %&gt;%
-  mutate(Positive = Positive.y - Positive.x, Total = Total.y - Total.x) %&gt;%
-  select(GEOID, Positive:Total) %&gt;%
-  mutate(Prop_Pos = Positive/Total)</code></pre>
-<pre class="r"><code>april_covid %&gt;%
+  mutate(Positive = Positive.y - Positive.x, Total = Total.y - Total.x)
+
+april_covid %&gt;%
   summarize(positive = sum(Positive),
             total = sum(Total))</code></pre>
 <pre><code>## # A tibble: 1 × 2
