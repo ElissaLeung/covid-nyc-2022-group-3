@@ -16,6 +16,8 @@ library(tigris)
 library(sf)
 library(dplyr)
 
+#census_api_key("INSERT_YOUR_API_KEY_HERE")
+
 readRenviron("~/.Renviron")
 
 options(tigris_use_cache = TRUE)
@@ -33,17 +35,9 @@ nyc_zip_codes <- read_csv("https://raw.githubusercontent.com/erikgregorywebb/nyc
 ```
 
 
+Geting and Filtering ACS Data
 
-**FIGURE 1**
-
-```{r}
-
-var <- load_variables(2016, 'acs5', cache = TRUE)
-
-```
-
-
-  Zipcode uninsured
+  Proportion of 18-64 year olds that are uninsured
 
 ```{r}
 
@@ -54,30 +48,19 @@ uninsured_zipcode <- get_acs(geography = "zcta",
 
 ```
 
+
 ```{r}
+
 nyc_uninsured <- uninsured_zipcode %>%
   select(GEOID:estimate) %>%
   filter(GEOID %in% nyc_zip_codes$GEOID) %>%
   pivot_wider(names_from = variable, values_from = estimate) %>%
   mutate(proportion_uninsured = (uninsured_34 + uninsured_64) / (total_34 + total_64))
 
-nyc_uninsured %>%
-  summary()
-```
-
-
-```{r}
-
-ggplot(st_as_sf(nyc_uninsured), aes(fill = proportion_uninsured)) +
-  geom_sf() + 
-  scale_fill_distiller(palette = "YlOrRd", direction = 1)
 
 ```
 
-
-
-
-  Zipcode Median Income
+  Median Income (in 2016 $)
 
 ```{r}
 
@@ -95,23 +78,10 @@ nyc_med_income <- nyc_medinc %>%
   filter(GEOID %in% nyc_zip_codes$GEOID) %>%
   mutate(median_income = estimate/1000000)
 
-nyc_med_income %>%
-  summary()
-
 ```
 
+  Proportion of those self-identifying as White
 
-
-```{r}
-ggplot(st_as_sf(nyc_med_income), aes(fill = median_income)) +
-  geom_sf() + 
-  scale_fill_distiller(palette = "YlGr", direction = 1)
-```
-
-
-
-  Zipcode Proportion White
-  
 ```{r}
 
 zipcode_prop_white <- get_acs(geography = "zcta",
@@ -129,24 +99,10 @@ nyc_prop_white <- zipcode_prop_white %>%
   pivot_wider(names_from = variable, values_from = estimate) %>%
   mutate(proportion_white = white_alone/total)
 
-nyc_prop_white %>%
-  summary()
-
 ```
 
+  Proportion of 4- or more person households
 
-```{r}
-
-ggplot(st_as_sf(nyc_prop_white), aes(fill = proportion_white)) +
-  geom_sf() +
-  scale_fill_distiller(palette = "Purples", direction = 1)
-
-
-```
-
-
-  Zipcode Proportion 4 or more person household
-  
 ```{r}
 
 zipcode_prop4 <- get_acs(geography = "zcta",
@@ -156,6 +112,7 @@ zipcode_prop4 <- get_acs(geography = "zcta",
 
 ```
 
+
 ```{r}
 
 nyc_prop4 <- zipcode_prop4 %>%
@@ -164,22 +121,9 @@ nyc_prop4 <- zipcode_prop4 %>%
   pivot_wider(names_from = variable, values_from = estimate) %>%
   mutate(proportion_4 = (four + five + six + seven_more + nf_four + nf_five + nf_six + nf_seven)/total)
 
-nyc_prop4 %>%
-  summary()
-
 ```
 
-
-
-```{r}
-ggplot(st_as_sf(nyc_prop4), aes(fill = proportion_4)) +
-  geom_sf() +
-  scale_fill_distiller(palette = "YlOrRd", direction = 1)
-```
-
-
-  Zipcode Proportion Bus Riders
-  
+  Proportion of those who ride buses
 
 ```{r}
 zipcode_prop_bus <- get_acs(geography = "zcta",
@@ -198,6 +142,116 @@ nyc_prop_bus <- zipcode_prop_bus %>%
   pivot_wider(names_from = variable, values_from = estimate) %>%
   mutate(proportion_bus = bus/total)
 
+
+```
+
+
+  Proportion of Elderly (65+ years old)
+
+```{r}
+zipcode_prop_65yrs <- get_acs(geography = "zcta",
+                         variables = c(m65 = "B01001_020", m67 = "B01001_021", m70 = "B01001_022", m75 = "B01001_023", m80 = "B01001_024", m85 = "B01001_025", f_65 = "B01001_044", f_67 = "B01001_045", f_70 = "B01001_046", f_75 = "B01001_047", f_80 = "B01001_048", f_85 = "B01001_049", total = "B01001_001"),
+                         year = 2016,
+                         geometry = TRUE)
+
+
+```
+
+```{r}
+
+nyc_prop_65yrs <- zipcode_prop_65yrs %>%
+  select(GEOID:estimate) %>%
+  filter(GEOID %in% nyc_zip_codes$GEOID) %>%
+  pivot_wider(names_from = variable, values_from = estimate) %>%
+  mutate(proportion_65 = (m65 + m67 + m70 + m75 + m80 + m85 + f_65 + f_67 + f_70 + f_75 + f_80 + f_85)/total)
+
+
+```
+
+
+
+**FIGURE 1**
+
+  Proportion of 18-64 year olds that are uninsured
+
+
+```{r}
+
+nyc_uninsured %>%
+  summary()
+
+```
+
+
+```{r}
+
+ggplot(st_as_sf(nyc_uninsured), aes(fill = proportion_uninsured)) +
+  geom_sf() + 
+  scale_fill_distiller(palette = "YlOrRd", direction = 1)
+
+```
+
+
+
+  Median Income
+
+```{r}
+
+nyc_med_income %>%
+  summary()
+
+```
+
+
+```{r}
+ggplot(st_as_sf(nyc_med_income), aes(fill = median_income)) +
+  geom_sf() + 
+  scale_fill_distiller(palette = "YlGr", direction = 1)
+```
+
+
+
+  Proportion of those self-identifying as white
+
+```{r}
+
+nyc_prop_white %>%
+  summary()
+
+```
+
+
+```{r}
+
+ggplot(st_as_sf(nyc_prop_white), aes(fill = proportion_white)) +
+  geom_sf() +
+  scale_fill_distiller(palette = "Purples", direction = 1)
+
+
+```
+
+
+  Proportion of 4 or more person households
+
+```{r}
+
+nyc_prop4 %>%
+  summary()
+
+```
+
+
+```{r}
+ggplot(st_as_sf(nyc_prop4), aes(fill = proportion_4)) +
+  geom_sf() +
+  scale_fill_distiller(palette = "YlOrRd", direction = 1)
+```
+
+
+  Proportion of Bus Riders
+
+```{r}
+
 nyc_prop_bus %>%
   summary()
 
@@ -215,24 +269,9 @@ ggplot(st_as_sf(nyc_prop_bus), aes(fill = proportion_bus)) +
 
 
 
-  Zipcode Proportion 65+
+  Proportion of Elderly
   
 ```{r}
-zipcode_prop_65yrs <- get_acs(geography = "zcta",
-                         variables = c(m65 = "B01001_020", m67 = "B01001_021", m70 = "B01001_022", m75 = "B01001_023", m80 = "B01001_024", m85 = "B01001_025", f_65 = "B01001_044", f_67 = "B01001_045", f_70 = "B01001_046", f_75 = "B01001_047", f_80 = "B01001_048", f_85 = "B01001_049", total = "B01001_001"),
-                         year = 2016,
-                         geometry = TRUE)
-
-
-```
-
-```{r}
-
-nyc_prop_65yrs <- zipcode_prop_65yrs %>%
-  select(GEOID:estimate) %>%
-  filter(GEOID %in% nyc_zip_codes$GEOID) %>%
-  pivot_wider(names_from = variable, values_from = estimate) %>%
-  mutate(proportion_65 = (m65 + m67 + m70 + m75 + m80 + m85 + f_65 + f_67 + f_70 + f_75 + f_80 + f_85)/total)
 
 nyc_prop_65yrs %>%
   summary()
