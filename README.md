@@ -22,3 +22,11 @@ All CSV file raw links are provided in the Rmd file and do not need to be predow
 + [April 1](https://raw.githubusercontent.com/nychealth/coronavirus-data/097cbd70aa00eb635b17b177bc4546b2fce21895/tests-by-zcta.csv) (cumulative) NYC Covid-19 information
 + [May 1](https://raw.githubusercontent.com/nychealth/coronavirus-data/9e26adc2c475d3378d7579e48e936f8a807b254b/tests-by-zcta.csv) (cumulative) NYC Covid-19 information
 
+**Extended Question**
+
+We decided to choose two counties, Manhattan and Queens, analyze them, and compare them, using the same variables as in the paper. We were interested in seeing what factors influenced Covid positivity rate the most in these two different counties. We added the same graphs as in our replication and developed the best linear model for Manhattan and Queens.
+
++ File containing the plots and tables [here](http://htmlpreview.github.io/?https://github.com/msr-ds3/covid-nyc-2022-group-3/blob/main/covid_nyc_counties.html).
++ File containing all the code that produced the file above [here](https://github.com/msr-ds3/covid-nyc-2022-group-3/blob/main/covid_nyc_counties.Rmd)
+
+Our conclusions about this extended question can be found here (insert txt file)
