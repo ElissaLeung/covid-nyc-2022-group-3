@@ -27,6 +27,6 @@ All CSV file raw links are provided in the Rmd file and do not need to be predow
 We decided to choose two counties, Manhattan and Queens, analyze them, and compare them, using the same variables as in the paper. We were interested in seeing what factors influenced Covid positivity rate the most in these two different counties. We added the same graphs as in our replication and developed the best linear model for Manhattan and Queens.
 
 + File containing the plots and tables [here](http://htmlpreview.github.io/?https://github.com/msr-ds3/covid-nyc-2022-group-3/blob/main/covid_nyc_counties.html).
-+ File containing all the code that produced the file above [here](https://github.com/msr-ds3/covid-nyc-2022-group-3/blob/main/covid_nyc_counties.Rmd)
++ File containing all the code that produced the file above [here](https://github.com/msr-ds3/covid-nyc-2022-group-3/blob/main/covid_nyc_counties.Rmd).
 
-Our conclusions about this extended question can be found here (insert txt file)
+Our conclusions about this extended question can be found [here](../main/conclusions.md).
