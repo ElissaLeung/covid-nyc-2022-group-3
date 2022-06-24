@@ -14,7 +14,7 @@ File containing all the replications [here](../main/Group_3_Final_Project.html).
 
 File containing the code that produced those replications [here](../main/Group_3_Final_Project.Rmd).
 
-Data used in this project: US census, nyc zipcodes and Safegraph.
+Data used in this project: US Census (ACS) and Safegraph.
 
 
 
