@@ -17,7 +17,6 @@ In this project, our goal was to replicate their findings and achieve the figure
 + File containing the code that produced those replications [here](../main/Group_3_Final_Project.Rmd).
   + All code should be run from beginning to end.
   + To use the ACS data provided by tidycensus, users may need to include their own API key using the commented line 19.
-  + Run the Get ACS section of the Rmd file only once, then use the `save.image('file.RData')`. For subsequent references of these dataframes load the RData file saved, using `load('file.RData')`.
 
 All CSV file raw links are provided in the Rmd file and do not need to be predownloaded in order to run the file, however, we attached the links below as well:
 + [NYC Zip Codes](https://raw.githubusercontent.com/erikgregorywebb/nyc-housing/master/Data/nyc-zip-codes.csv)
