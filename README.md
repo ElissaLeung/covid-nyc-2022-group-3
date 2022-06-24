@@ -15,9 +15,10 @@ In their article, Matthew R. Lamb, Sasikiran Kandula and Jeffrey Shaman, discuss
 In this project, our goal was to replicate their findings and achieve the figures and tables from the article.
 + File containing all the replications [here](../main/Group_3_Final_Project.html).
 + File containing the code that produced those replications [here](../main/Group_3_Final_Project.Rmd).
+  + All code should be run from beginning to end.
   + To use the ACS data provided by tidycensus, users may need to include their own API key using `census_api_key("INSERT_YOUR_API_KEY_HERE")`.
 
-All CSV file raw links are provided in the Rmd file and do not need to be predownloaded in order to run the file, however, we attached the links below as well
+All CSV file raw links are provided in the Rmd file and do not need to be predownloaded in order to run the file, however, we attached the links below as well:
 + [NYC Zip Codes](https://raw.githubusercontent.com/erikgregorywebb/nyc-housing/master/Data/nyc-zip-codes.csv)
 + [April 1](https://raw.githubusercontent.com/nychealth/coronavirus-data/097cbd70aa00eb635b17b177bc4546b2fce21895/tests-by-zcta.csv) (cumulative) NYC Covid-19 information
 + [May 1](https://raw.githubusercontent.com/nychealth/coronavirus-data/9e26adc2c475d3378d7579e48e936f8a807b254b/tests-by-zcta.csv) (cumulative) NYC Covid-19 information
