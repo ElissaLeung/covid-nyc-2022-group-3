@@ -8,7 +8,7 @@
 
 Replication of Figure 1, Figure 2, Table 1 (April 1st) and Table 2 (April 1st) from the article [*Differential COVID-19 case positivity in New York City neighborhoods: Socieconomic factors and mobility*](https://onlinelibrary.wiley.com/doi/epdf/10.1111/irv.12816).
 
-In their article, Matthew R. Lamb, Sasikiran Kandula and Jeffrey Shaman, discuss that socieconomic factors such as the proportion of 18-to 64-year-old population that is uninsured, median household income, proportion of population that self-identified their race as white, proportion of population living in households with more than three inhabitants, proportion of population using public transportation to commute to work that includes bus travel and proportion of population that is eldery, influenced Covid positivity rate. They also considered the daily change in mobility as a factor for Covid positivity rate. They used data from the US Census (ACS) and Safegraph to make these findings.
+In their article, Matthew R. Lamb, Sasikiran Kandula and Jeffrey Shaman, discuss the effect of certain socieconomic factors, specifically the proportion of 18-to 64-year-old population that is uninsured, median household income, proportion of population that self-identified their race as white, proportion of population living in households with more than three inhabitants, proportion of population using public transportation to commute to work that includes bus travel and proportion of population that is eldery on New York City's Covid positivity rate. They also considered the daily change in mobility as a factor for NYC's Covid positivity rate. They used data from the US Census (ACS) and Safegraph to make these findings.
 
 **Our Project**
 
