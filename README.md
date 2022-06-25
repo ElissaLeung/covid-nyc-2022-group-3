@@ -29,4 +29,4 @@ We decided to choose two counties, Manhattan and Queens, analyze them, and compa
 + File containing the plots and tables [here](http://htmlpreview.github.io/?https://github.com/msr-ds3/covid-nyc-2022-group-3/blob/main/covid_nyc_counties.html).
 + File containing all the code that produced the file above [here](https://github.com/msr-ds3/covid-nyc-2022-group-3/blob/main/covid_nyc_counties.Rmd).
 
-Our conclusions about this extended question can be found [here](../main/conclusions.md).
+Our thoughts on this extended question can be found [here](../main/conclusions.md).
